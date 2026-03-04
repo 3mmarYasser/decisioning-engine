@@ -21,6 +21,8 @@ RUN pnpm install --frozen-lockfile
 # ── Builder: build the application ─────────────────────────────────
 FROM installer AS builder
 COPY --from=pruner /app/out/full/ .
+# turbo prune omits root-level config files from out/full — copy explicitly
+COPY tsconfig.base.json .
 RUN pnpm turbo run build --filter=@decisioning/api
 
 # ── Runner: minimal production image ──────────────────────────────

@@ -22,6 +22,8 @@ RUN pnpm install --frozen-lockfile
 FROM installer AS builder
 WORKDIR /app
 COPY --from=pruner /app/out/full/ .
+# turbo prune omits root-level config files from out/full — copy explicitly
+COPY tsconfig.base.json .
 # NEXT_PUBLIC_* vars are baked in at build time for client components
 ARG NEXT_PUBLIC_API_URL=http://localhost:4000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
