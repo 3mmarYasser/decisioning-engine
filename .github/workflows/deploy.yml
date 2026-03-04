@@ -54,8 +54,9 @@ jobs:
             set -e
             cd /root/decisioning-engine
 
-            # Pull latest code
-            git pull origin master
+            # Pull latest code (reset hard handles force-pushed history cleanly)
+            git fetch origin master
+            git reset --hard origin/master
 
             # Write secrets to .env.prod — never stored in the repo
             printf 'OPENAI_API_KEY=%s\n' "$OPENAI_API_KEY" > .env.prod
