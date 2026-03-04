@@ -1,0 +1,48 @@
+{
+  "siteId": "site-abc",
+  "configVersion": "1.0.0",
+  "rules": [
+    {
+      "id": "rule-german-locale",
+      "priority": 1,
+      "conditions": [
+        { "field": "country", "operator": "eq", "value": "DE" },
+        { "field": "language", "operator": "eq", "value": "de" }
+      ],
+      "variant": {
+        "variantId": "variant-de",
+        "headline": "Willkommen — personalisierte Erlebnisse, datenschutzkonform",
+        "flags": { "showLocalDeals": true, "showGdprBanner": true }
+      }
+    },
+    {
+      "id": "rule-mobile-optimised",
+      "priority": 2,
+      "conditions": [
+        { "field": "deviceType", "operator": "eq", "value": "mobile" }
+      ],
+      "variant": {
+        "variantId": "variant-mobile",
+        "headline": "Fast, personal, mobile-first experience",
+        "flags": { "compactLayout": true, "lazyImages": true }
+      }
+    },
+    {
+      "id": "rule-seo-google",
+      "priority": 3,
+      "conditions": [
+        { "field": "referrerDomain", "operator": "contains", "value": "google" }
+      ],
+      "variant": {
+        "variantId": "variant-seo",
+        "headline": "Welcome from Google — see what's trending",
+        "flags": { "showTrending": true, "highlightSearch": true }
+      }
+    }
+  ],
+  "fallback": {
+    "variantId": "variant-default",
+    "headline": "Welcome — discover personalised content",
+    "flags": { "showOnboarding": true }
+  }
+}
