@@ -1,0 +1,7 @@
+api-decisioning.ammarhub.cloud {
+    reverse_proxy api:4000
+}
+
+decisioning.ammarhub.cloud {
+    reverse_proxy web:3000
+}
