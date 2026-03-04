@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { AllowedClaim, LlmCopyResponse } from '@decisioning/shared-types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,11 +26,29 @@ interface LlmResult extends LlmCopyResponse {
 }
 
 export default function CopyAssistant() {
-  const [tone, setTone] = useState('professional');
-  const [audience, setAudience] = useState('marketing teams');
+  const [tone, setToneState] = useState('professional');
+  const [audience, setAudienceState] = useState('marketing teams');
   const [result, setResult] = useState<LlmResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Restore persisted selections on mount
+  useEffect(() => {
+    const savedTone = localStorage.getItem('copy_assistant_tone');
+    const savedAudience = localStorage.getItem('copy_assistant_audience');
+    if (savedTone) setToneState(savedTone);
+    if (savedAudience) setAudienceState(savedAudience);
+  }, []);
+
+  const setTone = (v: string) => {
+    setToneState(v);
+    localStorage.setItem('copy_assistant_tone', v);
+  };
+
+  const setAudience = (v: string) => {
+    setAudienceState(v);
+    localStorage.setItem('copy_assistant_audience', v);
+  };
 
   const generate = async () => {
     if (loading) return;

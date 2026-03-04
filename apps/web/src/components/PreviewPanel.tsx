@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Play, Loader2 } from 'lucide-react';
+import { Play, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import CopyAssistant from './CopyAssistant';
 
 interface PresetVisitor {
@@ -40,9 +40,13 @@ const PRESET_VISITORS: PresetVisitor[] = [
   },
 ];
 
+type SentContext = DecideRequest['visitor'] & { marketing: boolean };
+
 export default function PreviewPanel() {
   const [overrides, setOverrides] = useState({ country: '', deviceType: '', referrerDomain: '' });
   const [results, setResults] = useState<Record<string, DecideResponse | null>>({});
+  const [sentContexts, setSentContexts] = useState<Record<string, SentContext>>({});
+  const [expandedCtx, setExpandedCtx] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasRun, setHasRun] = useState(false);
 
@@ -50,7 +54,9 @@ export default function PreviewPanel() {
 
   const runDecisions = useCallback(async () => {
     setLoading(true);
+    setExpandedCtx(null);
     const newResults: Record<string, DecideResponse | null> = {};
+    const newContexts: Record<string, SentContext> = {};
 
     await Promise.all(
       PRESET_VISITORS.map(async (preset) => {
@@ -58,6 +64,8 @@ export default function PreviewPanel() {
         if (overrides.country) visitor.country = overrides.country;
         if (overrides.deviceType) visitor.deviceType = overrides.deviceType;
         if (overrides.referrerDomain) visitor.referrerDomain = overrides.referrerDomain;
+
+        newContexts[preset.label] = { ...visitor, marketing: preset.consent.marketing };
 
         try {
           const res = await fetch(`${apiUrl}/decide`, {
@@ -79,6 +87,7 @@ export default function PreviewPanel() {
     );
 
     setResults(newResults);
+    setSentContexts(newContexts);
     setLoading(false);
     setHasRun(true);
   }, [overrides, apiUrl]);
@@ -162,35 +171,81 @@ export default function PreviewPanel() {
         <div className="space-y-3">
           {PRESET_VISITORS.map((preset) => {
             const result = results[preset.label];
+            const ctx = sentContexts[preset.label];
+            const isExpanded = expandedCtx === preset.label;
             return (
               <Card key={preset.label} className="transition-shadow hover:shadow-md">
-                <CardContent className="flex items-start justify-between gap-4 p-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{preset.label}</span>
-                      {!preset.consent.marketing && (
-                        <Badge variant="warning" className="text-[10px]">no consent</Badge>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{preset.label}</span>
+                        {!preset.consent.marketing && (
+                          <Badge variant="warning" className="text-[10px]">no consent</Badge>
+                        )}
+                      </div>
+                      {result ? (
+                        <>
+                          <p className="mt-1.5 text-base font-semibold">{result.headline}</p>
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {Object.entries(result.flags).map(([k, v]) => (
+                              <Badge key={k} variant={v ? 'success' : 'secondary'} className="text-[10px] font-normal">
+                                {k}
+                              </Badge>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <p className="mt-1 text-sm text-destructive">API unreachable</p>
                       )}
                     </div>
-                    {result ? (
-                      <>
-                        <p className="mt-1.5 text-base font-semibold">{result.headline}</p>
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {Object.entries(result.flags).map(([k, v]) => (
-                            <Badge key={k} variant={v ? 'success' : 'secondary'} className="text-[10px] font-normal">
-                              {k}
-                            </Badge>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <p className="mt-1 text-sm text-destructive">API unreachable</p>
-                    )}
-                  </div>
-                  {result && (
                     <div className="shrink-0 text-right">
-                      <code className="text-xs text-muted-foreground">{result.variantId}</code>
-                      <p className="mt-0.5 text-[10px] text-muted-foreground/60">v{result.configVersion}</p>
+                      {result && (
+                        <>
+                          <code className="text-xs text-muted-foreground">{result.variantId}</code>
+                          <p className="mt-0.5 text-[10px] text-muted-foreground/60">v{result.configVersion}</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expandable context summary */}
+                  {ctx && (
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedCtx(isExpanded ? null : preset.label)}
+                        className="flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                      >
+                        {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                        {isExpanded ? 'Hide' : 'Show'} context sent to /decide
+                      </button>
+                      {isExpanded && (
+                        <div className="mt-2 rounded-md border bg-muted/30 px-3 py-2 font-mono text-[11px] text-muted-foreground">
+                          <div className="grid grid-cols-2 gap-x-6 gap-y-0.5">
+                            {(
+                              [
+                                ['visitorId', ctx.visitorId ?? '(none)'],
+                                ['country', ctx.country ?? '(none)'],
+                                ['language', ctx.language ?? '(none)'],
+                                ['deviceType', ctx.deviceType ?? '(none)'],
+                                ['referrerDomain', ctx.referrerDomain || '(none)'],
+                                ['marketing', String(ctx.marketing)],
+                              ] as [string, string][]
+                            ).map(([k, v]) => (
+                              <div key={k} className="contents">
+                                <span className="text-muted-foreground/50">{k}</span>
+                                <span className="truncate">{v}</span>
+                              </div>
+                            ))}
+                          </div>
+                          {!preset.consent.marketing && (
+                            <p className="mt-1.5 border-t pt-1.5 text-amber-600 dark:text-amber-400">
+                              visitorId stripped before evaluation (marketing=false)
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
