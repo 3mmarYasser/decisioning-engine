@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Playground
               </Link>
               <a
-                href="http://localhost:4000/api/docs"
+                href={`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/docs`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground"

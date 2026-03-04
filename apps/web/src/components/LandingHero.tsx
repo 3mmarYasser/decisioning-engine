@@ -87,7 +87,7 @@ export default function LandingHero() {
               Open Playground <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </Link>
-          <a href="http://localhost:4000/api/docs" target="_blank" rel="noopener noreferrer">
+          <a href={`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/api/docs`} target="_blank" rel="noopener noreferrer">
             <Button variant="outline">API Reference</Button>
           </a>
         </div>
