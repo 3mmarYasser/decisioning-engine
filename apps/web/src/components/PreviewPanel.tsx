@@ -40,7 +40,14 @@ const PRESET_VISITORS: PresetVisitor[] = [
   },
 ];
 
-type SentContext = DecideRequest['visitor'] & { marketing: boolean };
+interface SentContext {
+  visitorId?: string;
+  country?: string;
+  language?: string;
+  deviceType?: string;
+  referrerDomain?: string;
+  marketing: boolean;
+}
 
 export default function PreviewPanel() {
   const [overrides, setOverrides] = useState({ country: '', deviceType: '', referrerDomain: '' });
