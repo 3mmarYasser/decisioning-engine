@@ -22,6 +22,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - PORT=4000
+      - NODE_ENV=production
       - CORS_ORIGIN=https://decisioning.ammarhub.cloud
     networks:
       - internal
