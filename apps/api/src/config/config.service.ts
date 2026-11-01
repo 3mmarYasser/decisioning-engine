@@ -31,7 +31,7 @@ export class SiteConfigService {
     const cached = await this.cache.get<RulesetConfig>(cacheKey);
     if (cached) return cached;
 
-    const config = RULESETS[siteId];
+    const config = Object.prototype.hasOwnProperty.call(RULESETS, siteId) ? RULESETS[siteId] : undefined;
     if (!config) {
       throw new NotFoundException(`Ruleset not found for siteId: ${siteId}`);
     }

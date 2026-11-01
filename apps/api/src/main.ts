@@ -6,6 +6,8 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+  // Behind Caddy: trust exactly one proxy hop so req.ip is the real client address.
+  (app.getHttpAdapter().getInstance() as { set: (k: string, v: unknown) => void }).set('trust proxy', 1);
 
   app.enableShutdownHooks();
   app.enableCors({
@@ -19,6 +21,7 @@ async function bootstrap() {
     }),
   );
 
+  if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === 'true') {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Decisioning Engine API')
     .setDescription(
@@ -35,10 +38,11 @@ async function bootstrap() {
     swaggerOptions: { persistAuthorization: true, docExpansion: 'list' },
   });
 
+  }
+
   const port = process.env.PORT || 4000;
   await app.listen(port);
   logger.log(`Decisioning API running on http://localhost:${port}`);
-  logger.log(`Swagger docs at http://localhost:${port}/api/docs`);
 }
 
 bootstrap().catch((err) => {

@@ -4,6 +4,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { SiteConfigModule } from './config/config.module';
 import { DecideModule } from './decide/decide.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RateLimitGuard } from './rate-limit.guard';
 
 @Module({
   imports: [
@@ -32,5 +34,6 @@ import { DecideModule } from './decide/decide.module';
     SiteConfigModule,
     DecideModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: RateLimitGuard }],
 })
 export class AppModule {}
