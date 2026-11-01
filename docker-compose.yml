@@ -2,7 +2,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
     restart: unless-stopped
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
@@ -15,7 +15,7 @@ services:
       context: .
       dockerfile: Dockerfile.api
     ports:
-      - '4000:4000'
+      - '127.0.0.1:4000:4000'
     restart: unless-stopped
     depends_on:
       redis:
@@ -31,7 +31,7 @@ services:
       context: .
       dockerfile: Dockerfile.web
     ports:
-      - '3000:3000'
+      - '127.0.0.1:3000:3000'
     restart: unless-stopped
     depends_on:
       - api
